@@ -29,6 +29,7 @@ DEFAULT_URGENT_HIGH = 200
 DEFAULT_URGENT_LOW = 70
 
 DEFAULT_SHOW_GRAPH = True
+GRAPH_WIDTH = 36
 
 CACHE_TTL_SECONDS = 60
 
@@ -192,7 +193,7 @@ def main(config):
     else:
         history_min = min(history,key=lambda x:x[1])[1]
         history_max = max(history,key=lambda x:x[1])[1]
-        
+
         return render.Root(
             render.Box(
                 render.Row(
@@ -271,8 +272,8 @@ def main(config):
                         ),
                         
                         render.Column(
-                            cross_align = "end",
-                            main_align = "end",
+                            cross_align = "start",
+                            main_align = "start",
                             expanded = False,
                             children = [
                                 render.Stack(
@@ -282,7 +283,7 @@ def main(config):
                                             (0,normal_low - urgent_low),
                                             (1,normal_low - urgent_low),
                                             ],
-                                          width = 40,
+                                          width = GRAPH_WIDTH,
                                           height = 32,
                                           color = COLOR_GREY,
                                           color_inverted = COLOR_GREY,
@@ -295,7 +296,7 @@ def main(config):
                                             (0,normal_high - urgent_low),
                                             (1,normal_high - urgent_low),
                                             ],
-                                          width = 40,
+                                          width = GRAPH_WIDTH,
                                           height = 32,
                                           color = COLOR_GREY,
                                           color_inverted = COLOR_GREY,
@@ -305,12 +306,12 @@ def main(config):
                                         ),
                                         render.Plot(
                                           data = graph_data,
-                                          width = 40,
+                                          width = GRAPH_WIDTH,
                                           height = 32,
                                           color = COLOR_GREEN,
                                           color_inverted = COLOR_RED,
                                           fill = False,
-                                          x_lim = (0, 39),
+                                          x_lim = (0, GRAPH_WIDTH-1),
                                           y_lim = (40 - urgent_low, 250 - urgent_low),
                                         ),
                                      ],
@@ -386,7 +387,7 @@ def get_nightscout_data(nightscout_id):
 
     # If it's not in the cache, construct it from a response.
     print("Miss - calling Nightscout API")
-    nightscout_url = "https://" + nightscout_id + "/api/v1/entries.json?count=40"
+    nightscout_url = "https://" + nightscout_id + "/api/v1/entries.json?count="+GRAPH_WIDTH
     print(nightscout_url)
     # Request latest entries from the Nightscout URL
     resp = http.get(nightscout_url)
@@ -412,8 +413,8 @@ def get_nightscout_data(nightscout_id):
     
     history = []
 
-    for x in range(40):
-        history.append(tuple((x, int(resp.json()[39-x]["sgv"]))))
+    for x in range(GRAPH_WIDTH):
+        history.append(tuple((x, int(resp.json()[GRAPH_WIDTH-1-x]["sgv"]))))
 
     print (history)
     
