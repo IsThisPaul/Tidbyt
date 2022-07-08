@@ -85,7 +85,6 @@ def main(config):
     print (history)
     
     reading_mins_ago = int((time.now().in_location("UTC") - latest_reading_dt).minutes)
-    
     print (reading_mins_ago)
     
     if (reading_mins_ago < 1):
@@ -98,7 +97,7 @@ def main(config):
     if (reading_mins_ago < 6):
         ago_dashes = "-"*reading_mins_ago
     else:
-        ago_dashes = reading_mins_ago + "mins"
+        ago_dashes = str(reading_mins_ago) + "min"
     
     print (ago_dashes)
     
@@ -207,10 +206,20 @@ def main(config):
                             children = [
                                 render.Row(
                                     children = [
+                                        render.Box(
+                                            width=24,
+                                            height=1,
+                                            color="#000",
+                                        ),
+                                    ]
+                                ),
+                                render.Row(
+                                    children = [
                                         render.Text(
                                             content = str(int(sgv_current)),
                                             font = "6x13",
                                             color = font_color,
+                                            offset = 1
                                         ),
                                     ]
                                 ),
@@ -227,15 +236,6 @@ def main(config):
                                             font = "5x8",
                                             color = font_color,
                                             offset = 1,
-                                        ),
-                                    ]
-                                ),
-                                render.Row(
-                                    children = [
-                                        render.Box(
-                                            width=24,
-                                            height=1,
-                                            color="#000",
                                         ),
                                     ]
                                 ),
@@ -263,7 +263,7 @@ def main(config):
                                         content = ago_dashes,
                                         font = "tom-thumb",
                                         color = COLOR_GREY,
-                                        offset = 1,
+                                        offset = 0,
                                     ),
                                     ]
                                 ),
