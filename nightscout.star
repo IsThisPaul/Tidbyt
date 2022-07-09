@@ -29,7 +29,7 @@ DEFAULT_URGENT_HIGH = 200
 DEFAULT_URGENT_LOW = 70
 
 DEFAULT_SHOW_GRAPH = True
-GRAPH_WIDTH = 36
+GRAPH_WIDTH = 41
 
 CACHE_TTL_SECONDS = 60
 
@@ -87,6 +87,7 @@ def main(config):
     
     reading_mins_ago = int((time.now().in_location("UTC") - latest_reading_dt).minutes)
     print (reading_mins_ago)
+    # reading_mins_ago = 22
     
     if (reading_mins_ago < 1):
         human_reading_ago = "< 1 min ago"
@@ -193,12 +194,13 @@ def main(config):
     else:
         history_min = min(history,key=lambda x:x[1])[1]
         history_max = max(history,key=lambda x:x[1])[1]
+        left_row_width = 20
 
         return render.Root(
             render.Box(
                 render.Row(
-                    main_align = "space_evenly",
-                    cross_align = "center",
+                    main_align = "center",
+                    cross_align = "start",
                     expanded = True,
                     children = [
                         render.Column(
@@ -207,20 +209,12 @@ def main(config):
                             children = [
                                 render.Row(
                                     children = [
-                                        render.Box(
-                                            width=24,
-                                            height=1,
-                                            color="#000",
-                                        ),
-                                    ]
-                                ),
-                                render.Row(
-                                    children = [
-                                        render.Text(
+                                        render.WrappedText(
                                             content = str(int(sgv_current)),
                                             font = "6x13",
                                             color = font_color,
-                                            offset = 1
+                                            width = left_row_width,
+                                            align = "center",
                                         ),
                                     ]
                                 ),
@@ -230,13 +224,13 @@ def main(config):
                                             content = str_delta,
                                             font = "tom-thumb",
                                             color = COLOR_GREY,
-                                            offset = -1,
+                                            offset = 0,
                                         ),
                                         render.Text(
                                             content = ARROWS[direction],
                                             font = "5x8",
                                             color = font_color,
-                                            offset = 1,
+                                            offset = 2,
                                         ),
                                     ]
                                 ),
@@ -244,15 +238,19 @@ def main(config):
                                     children = [
                                         render.Animation(
                                             children = [
-                                                render.Text(
+                                                render.WrappedText(
                                                     content = now.format("3:04"),
                                                     font = "tom-thumb",
                                                     color = COLOR_ORANGE,
+                                                    width = left_row_width,
+                                                    align = "center"
                                                 ),
-                                                render.Text(
+                                                render.WrappedText(
                                                     content = now.format("3 04"),
                                                     font = "tom-thumb",
                                                     color = COLOR_ORANGE,
+                                                    width = left_row_width,
+                                                    align = "center"
                                                 ),
                                             ],
                                         ),
@@ -260,11 +258,12 @@ def main(config):
                                 ),
                                 render.Row(
                                     children = [
-                                        render.Text(
+                                        render.WrappedText(
                                         content = ago_dashes,
                                         font = "tom-thumb",
                                         color = COLOR_GREY,
-                                        offset = 0,
+                                        width = left_row_width,
+                                        align = "center"
                                     ),
                                     ]
                                 ),
@@ -387,7 +386,7 @@ def get_nightscout_data(nightscout_id):
 
     # If it's not in the cache, construct it from a response.
     print("Miss - calling Nightscout API")
-    nightscout_url = "https://" + nightscout_id + "/api/v1/entries.json?count="+GRAPH_WIDTH
+    nightscout_url = "https://" + nightscout_id + "/api/v1/entries.json?count="+str(GRAPH_WIDTH)
     print(nightscout_url)
     # Request latest entries from the Nightscout URL
     resp = http.get(nightscout_url)
