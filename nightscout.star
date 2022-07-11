@@ -29,7 +29,7 @@ DEFAULT_URGENT_HIGH = 200
 DEFAULT_URGENT_LOW = 70
 
 DEFAULT_SHOW_GRAPH = True
-GRAPH_WIDTH = 41
+GRAPH_WIDTH = 43
 
 CACHE_TTL_SECONDS = 60
 
@@ -77,14 +77,13 @@ def main(config):
     trend = nightscout_data_json["trend"]
     direction = nightscout_data_json["direction"]
     history = nightscout_data_json["history"]
-    
-    graph_data = []
-        
-    for reading in history:
-        graph_data.append(tuple((reading[0], reading[1] - urgent_low)))
 
     print (history)
     
+    graph_data = history
+    #for reading in history:
+        #graph_data.append(tuple((reading[0], reading[1] - urgent_low)))
+        
     reading_mins_ago = int((time.now().in_location("UTC") - latest_reading_dt).minutes)
     print (reading_mins_ago)
     # reading_mins_ago = 22
@@ -194,8 +193,47 @@ def main(config):
     else:
         history_min = min(history,key=lambda x:x[1])[1]
         history_max = max(history,key=lambda x:x[1])[1]
-        left_row_width = 20
+        left_col_width = 21
+        # high and low lines
+        graph_plot=[]
+        
+        # the rest of the graph
+        for plot_point in graph_data:
+            color_high = COLOR_GREEN
+            color_low = COLOR_YELLOW
+            
+            if plot_point[1] > normal_high:
+                color_high = COLOR_YELLOW
+                color_low = COLOR_YELLOW
+                
+            if plot_point[1] > urgent_high:
+                color_high = COLOR_RED
+                color_low = COLOR_RED
+            
+            if plot_point[1] < normal_low:
+                color_high = COLOR_YELLOW
+                color_low = COLOR_YELLOW
+                
+            if plot_point[1] < urgent_low:
+                color_high = COLOR_RED
+                color_low = COLOR_RED
 
+            graph_plot.append(
+                render.Plot(
+                  data = [
+                    (0,plot_point[1]),
+                    (1,plot_point[1]),
+                    ],
+                  width = 1,
+                  height = 32,
+                  color = color_high,
+                  color_inverted = color_low,
+                  fill = False,
+                  x_lim = (0, 1),
+                  y_lim = (40, 250),
+                )
+            )
+        
         return render.Root(
             render.Box(
                 render.Row(
@@ -213,7 +251,7 @@ def main(config):
                                             content = str(int(sgv_current)),
                                             font = "6x13",
                                             color = font_color,
-                                            width = left_row_width,
+                                            width = left_col_width,
                                             align = "center",
                                         ),
                                     ]
@@ -242,14 +280,14 @@ def main(config):
                                                     content = now.format("3:04"),
                                                     font = "tom-thumb",
                                                     color = COLOR_ORANGE,
-                                                    width = left_row_width,
+                                                    width = left_col_width,
                                                     align = "center"
                                                 ),
                                                 render.WrappedText(
                                                     content = now.format("3 04"),
                                                     font = "tom-thumb",
                                                     color = COLOR_ORANGE,
-                                                    width = left_row_width,
+                                                    width = left_col_width,
                                                     align = "center"
                                                 ),
                                             ],
@@ -262,7 +300,7 @@ def main(config):
                                         content = ago_dashes,
                                         font = "tom-thumb",
                                         color = COLOR_GREY,
-                                        width = left_row_width,
+                                        width = left_col_width,
                                         align = "center"
                                     ),
                                     ]
@@ -279,8 +317,8 @@ def main(config):
                                     children=[
                                         render.Plot(
                                           data = [
-                                            (0,normal_low - urgent_low),
-                                            (1,normal_low - urgent_low),
+                                            (0,normal_low),
+                                            (1,normal_low),
                                             ],
                                           width = GRAPH_WIDTH,
                                           height = 32,
@@ -288,12 +326,12 @@ def main(config):
                                           color_inverted = COLOR_GREY,
                                           fill = False,
                                           x_lim = (0, 1),
-                                          y_lim = (40 - urgent_low, 250 - urgent_low),
+                                          y_lim = (40, 250),
                                         ),
                                         render.Plot(
                                           data = [
-                                            (0,normal_high - urgent_low),
-                                            (1,normal_high - urgent_low),
+                                            (0,normal_high),
+                                            (1,normal_high),
                                             ],
                                           width = GRAPH_WIDTH,
                                           height = 32,
@@ -301,17 +339,13 @@ def main(config):
                                           color_inverted = COLOR_GREY,
                                           fill = False,
                                           x_lim = (0, 1),
-                                          y_lim = (40 - urgent_low, 250 - urgent_low),
+                                          y_lim = (40, 250),
                                         ),
-                                        render.Plot(
-                                          data = graph_data,
-                                          width = GRAPH_WIDTH,
-                                          height = 32,
-                                          color = COLOR_GREEN,
-                                          color_inverted = COLOR_RED,
-                                          fill = False,
-                                          x_lim = (0, GRAPH_WIDTH-1),
-                                          y_lim = (40 - urgent_low, 250 - urgent_low),
+                                        render.Row(
+                                            main_align = "start",
+                                            cross_align = "start",
+                                            expanded = True,
+                                            children = graph_plot
                                         ),
                                      ],
                                 )
@@ -414,8 +448,6 @@ def get_nightscout_data(nightscout_id):
 
     for x in range(GRAPH_WIDTH):
         history.append(tuple((x, int(resp.json()[GRAPH_WIDTH-1-x]["sgv"]))))
-
-    print (history)
     
     nightscout_data = {
         "sgv_current": str(int(sgv_current)),
